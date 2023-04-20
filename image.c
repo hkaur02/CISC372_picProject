@@ -15,7 +15,7 @@
 
 enum KernelTypes type;
 
-typedef struct {
+struct arg_struct {
     Image* srcImage;
     Image* destImage;
     enum KernelTypes type;
@@ -89,11 +89,15 @@ int Usage(){
     return -1;
 }
 
-void* pt_convolute(void* c_args){
+void *pt_convolute(void* args){
+    struct arg_struct *c_args = args;
+    Image* srcImage = c_args->srcImage;
+    Image* destImage = c_args->destImage;
     int my_rows, my_start, bit, span, px;
-    long my_rank = c_args.rank;
+    long my_rank = c_args->rank;
     int total_rows = c_args.destImage->height;
-    span = c_args.srcImage->bpp * c_args.srcImage->bpp;
+    
+    span = srcImage->bpp * srcImage->bpp;
 
     my_rows = (int) total_rows / thread_cnt;
     my_start = (int) my_rank * my_rows;
@@ -103,9 +107,9 @@ void* pt_convolute(void* c_args){
 
     int row;
     for(row = my_start; row<my_start+my_rows; row++){
-        for(px = 0; px<c_args.srcImage->width; px++){
-            for(bit = 0; bit<c_args.srcImage->bpp; bit++){
-                c_args.destImage->data[Index(px, row, c_args.srcImage->width, bit, c_args.srcImage->bpp)]=getPixelValue(c_args.srcImage, px, row, bit, algorithm[c_args.type]);
+        for(px = 0; px<srcImage->width; px++){
+            for(bit = 0; bit<srcImage->bpp; bit++){
+                destImage->data[Index(px, row, srcImage->width, bit, srcImage->bpp)]=getPixelValue(srcImage, px, row, bit, algorithm[c_args->type]);
             }
         }
     }
@@ -155,11 +159,11 @@ int main(int argc,char** argv){
     thread_handles = (pthread_t*)malloc(thread_cnt * sizeof(pthread_t));
 
     for(thread = 0; thread < thread_cnt; thread++){
-        c_args.srcImage = &srcImage;
-        c_args.destImage = &destImage;
-        c_args.type = type;
-        c_args.rank = thread;
-        pthread_create(&thread_handles[thread], NULL, &pt_convolute, (void *) c_args); 
+        c_args->srcImage = &srcImage;
+        c_args->destImage = &destImage;
+        c_args->type = type;
+        c_args->rank = thread;
+        pthread_create(&thread_handles[thread], NULL, pt_convolute, c_args); 
     }
 
     for(thread = 0; thread < thread_cnt; thread++){
