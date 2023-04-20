@@ -19,6 +19,7 @@ typedef struct {
     Image* srcImage;
     Image* destImage;
     enum KernelTypes type;
+    long rank;
 } convArgs;
 
 convArgs c_args;
@@ -88,9 +89,9 @@ int Usage(){
     return -1;
 }
 
-void* pt_convolute(void * rank){
+void* pt_convolute(void* c_args){
     int my_rows, my_start, bit, span, px;
-    long my_rank = (long) rank;
+    long my_rank = c_args.rank;
     int total_rows = c_args.destImage->height;
     span = c_args.srcImage->bpp * c_args.srcImage->bpp;
 
@@ -157,7 +158,8 @@ int main(int argc,char** argv){
         c_args.srcImage = &srcImage;
         c_args.destImage = &destImage;
         c_args.type = type;
-        pthread_create(&thread_handles[thread], NULL, &pt_convolute, (void *) thread); 
+        c_args.rank = thread;
+        pthread_create(&thread_handles[thread], NULL, &pt_convolute, (void *) c_args); 
     }
 
     for(thread = 0; thread < thread_cnt; thread++){
