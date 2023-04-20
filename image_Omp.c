@@ -2,7 +2,7 @@
 #include <time.h>
 #include <string.h>
 #include "image.h"
-#include <image_Omp.h>
+#include "image_Omp.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -63,7 +63,7 @@ void convolute(Image* srcImage,Image* destImage,Matrix algorithm){
     for (row = 0;row < srcImage->height;row++){
         for (px = 0;px < srcImage->width;px++){
             for (bit = 0;bit < srcImage->bpp;bit++){
-                destImage->data[Index(pix, row,srcImage->width, bit, srcImage->bpp)]=getPixelValue(srcImage, px, row, bit, algorithm);
+                destImage->data[Index(px, row,srcImage->width, bit, srcImage->bpp)]=getPixelValue(srcImage, px, row, bit, algorithm);
             }
         }
     }
