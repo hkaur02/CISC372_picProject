@@ -13,16 +13,19 @@
 
 #define thread_cnt 10
 
+enum KernelTypes type;
+
 typedef struct {
     Image* srcImage;
     Image* destImage;
+    enum KernelTypes type;
 } convArgs;
 
 convArgs c_args;
 
 //An array of kernel matrices to be used for image convolution.  
 //The indexes of these match the enumeration from the header file. ie. algorithms[BLUR] returns the kernel corresponding to a box blur.
-Matrix algorithms[]={
+Matrix algorithm[]={
     {{0,-1,0},{-1,4,-1},{0,-1,0}},
     {{0,-1,0},{-1,5,-1},{0,-1,0}},
     {{1/9.0,1/9.0,1/9.0},{1/9.0,1/9.0,1/9.0},{1/9.0,1/9.0,1/9.0}},
@@ -97,10 +100,11 @@ void* pt_convolute(void * rank){
         my_rows += total_rows % thread_cnt;
     }
 
-    for(int row = my_start; row<my_start+my_rows; row++){
+    int row;
+    for(row = my_start; row<my_start+my_rows; row++){
         for(px = 0; px<c_args.srcImage->width; px++){
             for(bit = 0; bit<c_args.srcImage->bpp; bit++){
-                c_args.destImage->data[Index(px, row, c_args.srcImage->width, bit, c_args.srcImage->bpp)]=getPixelValue(c_args.srcImage, px, row, bit, algorithms[type]);
+                c_args.destImage->data[Index(px, row, c_args.srcImage->width, bit, c_args.srcImage->bpp)]=getPixelValue(c_args.srcImage, px, row, bit, algorithm[c_args.type]);
             }
         }
     }
@@ -152,6 +156,7 @@ int main(int argc,char** argv){
     for(thread = 0; thread < thread_cnt; thread++){
         c_args.srcImage = &srcImage;
         c_args.destImage = &destImage;
+        c_args.type = type;
         pthread_create(&thread_handles[thread], NULL, &pt_convolute, (void *) thread); 
     }
 
