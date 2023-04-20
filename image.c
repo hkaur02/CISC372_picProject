@@ -11,7 +11,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#define thread_cnt = 10;
+#define thread_cnt 10
 
 typedef struct {
     Image* srcImage;
