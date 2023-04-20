@@ -2,7 +2,7 @@
 #include <time.h>
 #include <string.h>
 #include "image.h"
-#include <omp.h>
+#include <image_Omp.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
