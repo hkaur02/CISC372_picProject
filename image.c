@@ -11,7 +11,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-int thread_cnt;
+#define thread_cnt = 10;
 
 typedef struct {
     Image* srcImage;
@@ -67,12 +67,12 @@ uint8_t getPixelValue(Image* srcImage,int x,int y,int bit,Matrix algorithm){
 //            algorithm: The kernel matrix to use for the convolution
 //Returns: Nothing
 void convolute(Image* srcImage,Image* destImage,Matrix algorithm){
-    int row,pix,bit,span;
+    int row,px,bit,span;
     span=srcImage->bpp*srcImage->bpp;
     for (row=0;row<srcImage->height;row++){
-        for (pix=0;pix<srcImage->width;pix++){
+        for (px=0;px<srcImage->width;px++){
             for (bit=0;bit<srcImage->bpp;bit++){
-                destImage->data[Index(pix,row,srcImage->width,bit,srcImage->bpp)]=getPixelValue(srcImage,pix,row,bit,algorithm);
+                destImage->data[Index(px,row,srcImage->width,bit,srcImage->bpp)]=getPixelValue(srcImage,px,row,bit,algorithm);
             }
         }
     }
@@ -91,10 +91,10 @@ void* pt_convolute(void * rank){
     int total_rows = c_args.destImage->height;
     span = c_args.srcImage->bpp * c_args.srcImage->bpp;
 
-    my_rows = (int) total_rows / thread_count;
+    my_rows = (int) total_rows / thread_cnt;
     my_start = (int) my_rank * my_rows;
-    if((int)my_rank == thread_count - 1){
-        my_rows += total_rows % thread_count;
+    if((int)my_rank == thread_cnt - 1){
+        my_rows += total_rows % thread_cnt;
     }
 
     for(int row = my_start; row<my_start+my_rows; row++){
@@ -147,13 +147,12 @@ int main(int argc,char** argv){
     
     long thread;
     pthread_t* thread_handles;
-    thread_cnt = strtol(argv[3], NULL, 10);
     thread_handles = (pthread_t*)malloc(thread_cnt * sizeof(pthread_t));
 
     for(thread = 0; thread < thread_cnt; thread++){
         c_args.srcImage = &srcImage;
         c_args.destImage = &destImage;
-        pthread_create(&thread_handles[thread], NULL, &p_convolute, (void *) thread); 
+        pthread_create(&thread_handles[thread], NULL, &pt_convolute, (void *) thread); 
     }
 
     for(thread = 0; thread < thread_cnt; thread++){
