@@ -20,9 +20,7 @@ struct arg_struct {
     Image* destImage;
     enum KernelTypes type;
     long rank;
-} convArgs;
-
-convArgs c_args;
+};
 
 //An array of kernel matrices to be used for image convolution.  
 //The indexes of these match the enumeration from the header file. ie. algorithms[BLUR] returns the kernel corresponding to a box blur.
@@ -95,7 +93,7 @@ void *pt_convolute(void* args){
     Image* destImage = c_args->destImage;
     int my_rows, my_start, bit, span, px;
     long my_rank = c_args->rank;
-    int total_rows = c_args.destImage->height;
+    int total_rows = destImage->height;
     
     span = srcImage->bpp * srcImage->bpp;
 
@@ -136,7 +134,7 @@ int main(int argc,char** argv){
     t1=time(NULL);
 
     stbi_set_flip_vertically_on_load(0); 
-    if (argc!=4) return Usage();
+    if (argc!=3) return Usage();
     char* fileName=argv[1];
     if (!strcmp(argv[1],"pic4.jpg")&&!strcmp(argv[2],"gauss")){
         printf("You have applied a gaussian filter to Gauss which has caused a tear in the time-space continum.\n");
@@ -159,11 +157,12 @@ int main(int argc,char** argv){
     thread_handles = (pthread_t*)malloc(thread_cnt * sizeof(pthread_t));
 
     for(thread = 0; thread < thread_cnt; thread++){
-        c_args->srcImage = &srcImage;
-        c_args->destImage = &destImage;
-        c_args->type = type;
-        c_args->rank = thread;
-        pthread_create(&thread_handles[thread], NULL, pt_convolute, c_args); 
+        struct arg_struct *args = malloc(sizeof(struct arg_struct));
+        args->srcImage = &srcImage;
+        args->destImage = &destImage;
+        args->type = type;
+        args->rank = thread;
+        pthread_create(&thread_handles[thread], NULL, pt_convolute, args); 
     }
 
     for(thread = 0; thread < thread_cnt; thread++){
