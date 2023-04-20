@@ -1,6 +1,6 @@
 
 image:image.c image.h
-	gcc -g image.c -o image -lm
+	gcc -g image.c -o image -lm -lpthread
 image_omp: image_Omp.c image.h
 	gcc -g image_Omp.c -o image -lm -fopenmp
 clean:
